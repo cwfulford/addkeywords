@@ -1,14 +1,14 @@
 #!/bin/bash
-# $Id: addkeywords,v 1.13 2019/05/14 19:24:26 fulford Exp fulford $
+# $Id: addkeywords,v 1.14 2019/05/14 19:27:21 fulford Exp fulford $
 # $Source: /src/admin/usr/local/etc/RCS/addkeywords,v $
-# $Revision: 1.13 $
+# $Revision: 1.14 $
 # Author C W Fulford.
 # Copyright 2019 (c) C W Fulford.
 # Licensed for public use under the LGPL, .
 # For assistance contact fulford@fulford.net 0793 572 8612
 ########################################################################
 cmd=`basename $0`
-ver=`echo "$Id: addkeywords,v 1.13 2019/05/14 19:24:26 fulford Exp fulford $"|awk '{print $3,$4,$5}'`
+ver=`echo "$Id: addkeywords,v 1.14 2019/05/14 19:27:21 fulford Exp fulford $"|awk '{print $3,$4,$5}'`
 syntax="$cmd [-c <configfile>] [-d] [-h <hostid>] [-v]|-V"
 while [ $# -gt 0 ] ;do
 	case $1 in 
@@ -18,7 +18,7 @@ while [ $# -gt 0 ] ;do
 		-l) last=$2;shift 2;;
 		-s) first=$2;shift 2;;
 		-v) verbose=:;shift;;
-		-V) echo "$cmd $Revision: 1.13 $ $Date: 2019/05/14 19:24:26 $"|awk '{print $1,$3,$6}';exit;;  
+		-V) echo "$cmd $Revision: 1.14 $ $Date: 2019/05/14 19:27:21 $"|awk '{print $1,$3,$6}';exit;;  
 		*) keywords="$keywords $1";shift;;
 	esac
 done
@@ -73,6 +73,9 @@ chkFiles () {
 		echo -e "\n\"$keyword\" required in ${#tfiles} files\n" 
 		echo $tfiles|pr -t -c 8 -
 		return ${#tfiles}
+	else
+		echo -e "\nNothing to be done for \"$keyword\"
+		return 0
 	fi
 }
 
