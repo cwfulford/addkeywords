@@ -1,14 +1,14 @@
 #!/bin/bash
-# $Id: addkeywords,v 1.37 2019/05/14 20:29:43 fulford Exp fulford $
+# $Id: addkeywords,v 1.38 2019/05/14 20:38:17 fulford Exp fulford $
 # $Source: /src/admin/usr/local/etc/RCS/addkeywords,v $
-# $Revision: 1.37 $
+# $Revision: 1.38 $
 # Author C W Fulford.
 # Copyright 2019 (c) C W Fulford.
 # Licensed for public use under the LGPL, .
 # For assistance contact fulford@fulford.net 0793 572 8612
 ########################################################################
 cmd=`basename $0`
-ver=`echo "$Id: addkeywords,v 1.37 2019/05/14 20:29:43 fulford Exp fulford $"|awk '{print $3,$4,$5}'`
+ver=`echo "$Id: addkeywords,v 1.38 2019/05/14 20:38:17 fulford Exp fulford $"|awk '{print $3,$4,$5}'`
 syntax="$cmd [-c <configfile>] [-d] [-h <hostid>] [-v]|-V"
 while [ $# -gt 0 ] ;do
 	case $1 in 
@@ -18,7 +18,7 @@ while [ $# -gt 0 ] ;do
 		-l) last=$2;shift 2;;
 		-s) first=$2;shift 2;;
 		-v) verbose=:;shift;;
-		-V) echo "$cmd $Revision: 1.37 $ $Date: 2019/05/14 20:29:43 $"|awk '{print $1,$3,$6}';exit;;  
+		-V) echo "$cmd $Revision: 1.38 $ $Date: 2019/05/14 20:38:17 $"|awk '{print $1,$3,$6}';exit;;  
 		*) keywords="$keywords $1";shift;;
 	esac
 done
@@ -51,7 +51,7 @@ getFiles () {
 		clear
 		break
 	done
-	files=`ls *.$ext | awk '/'$first'/,/'$last'/{printf("%s ",$1)}'`
+	files=`ls *.$ext | awk '/'$first'/,/'$last'/{print)}'`
 }
 
 chkFiles () {
@@ -68,14 +68,14 @@ chkFiles () {
 	done
 	if [ ${#gfiles} -gt 0 ];then
 		count=`echo $gfiles|wc -w`
-		echo -e "\n\"$keyword\" already exists in $count files:">&2
+		echo -e "\n\"$keyword\" already exists in $count files:"
 	fi
 	if [ ${#tfiles} -gt 0 ];then
 		count=`echo $tfiles|wc -w`
-		echo -e "\"$keyword\" required in $count files\n">&2
+		echo -e "\"$keyword\" required in $count files\n"
 		echo $tfiles|pr -t -8 -
 		read -p "Add keyword[y/n/q]? " reply
-		case $reply in
+		case $reply i
 			y) return $count;;
 			n) return 0;;
 			q) exit;;
