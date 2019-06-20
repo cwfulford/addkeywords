@@ -1,14 +1,14 @@
 #!/bin/bash
-# $Id: addkeywords,v 1.53 2019/06/20 10:13:21 fulford Exp $
+# $Id: addkeywords,v 1.54 2019/06/20 14:02:49 fulford Exp fulford $
 # $Source: /src/admin/usr/local/etc/RCS/addkeywords,v $
-# $Revision: 1.53 $
+# $Revision: 1.54 $
 # Author C W Fulford.
 # Copyright 2019 (c) C W Fulford.
 # Licensed for public use under the LGPL, .
 # For assistance contact fulford@fulford.net 0793 572 8612
 ########################################################################
 cmd=`basename $0`
-ver=`echo "$Id: addkeywords,v 1.53 2019/06/20 10:13:21 fulford Exp $"|awk '{print $3,$4,$5}'`
+ver=`echo "$Id: addkeywords,v 1.54 2019/06/20 14:02:49 fulford Exp fulford $"|awk '{print $3,$4,$5}'`
 syntax="$cmd [-c <configfile>] [-d] [-h <hostid>] [-v]|-V"
 while [ $# -gt 0 ] ;do
 	case $1 in 
@@ -18,11 +18,11 @@ while [ $# -gt 0 ] ;do
 		-l) last=$2;shift 2;;
 		-s) first=$2;shift 2;;
 		-v) verbose=:;shift;;
-		-V) echo "$cmd $Revision: 1.53 $ $Date: 2019/06/20 10:13:21 $"|awk '{print $1,$3,$6}';exit;;  
+		-V) echo "$cmd $Revision: 1.54 $ $Date: 2019/06/20 14:02:49 $"|awk '{print $1,$3,$6}';exit;;  
 		*) keywords="$keywords $1";shift;;
 	esac
 done
-keywords=/usr/local/etc/keywords
+dict=/usr/local/etc/keywords
 
 ##############################
 carryon () {
@@ -86,13 +86,13 @@ chkFiles () {
 	fi
 }
 chkKeyword () { keyword="$@"
-	grep -q ^$keyword$ /usr/local/etc/keywords ||{
-		matches="`grep $keyword /usr/local/etc/keywords` Not found"
+	grep -q ^$keyword$ $dict ||{
+		matches="`grep $keyword $dict` Not found"
 		if [ $match == "Not found" ];then
 			echo "Keyword \"$keyword\" is not available" >&2
 			read -p "Edit keywords now [y/n]? " yesno </dev/tty 
 			if [ $yesno = "y" ];then 
-				sudo vi /usr/local/etc/keywords </dev/tty
+				sudo vi $dict </dev/tty
 			fi
 		fi
 	}
@@ -115,17 +115,18 @@ fi
 echo $keywords|awk -F, '{for(i=1; i<=NF; i++) print($i)}'|
 while read keyword;do
 	chkKeyword $keyword
-#	grep -q ^$keyword$ /usr/local/etc/keywords ||{
+#	grep -q ^$keyword$ $dict ||{
 #		echo "Keyword \"$keyword\" is not available" >&2
 #		read -p "Edit keywords now [y/n]? " yesno </dev/tty 
 #		if [ $yesno = "y" ];then 
-#			sudo vi /usr/local/etc/keywords </dev/tty
+#			sudo vi $dict </dev/tty
 #		fi
 #	}
 done
 getFiles
 echo $keywords|awk -F, '{for(i=1; i<=NF; i++) print($i)}'|
 while read keyword;do
+	chkKeyword "$keyword"
 	chkFiles "$keyword"
 	todo=$?
 	if [ $todo -gt 0 ];then
