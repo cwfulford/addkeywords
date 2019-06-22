@@ -1,14 +1,14 @@
 #!/bin/bash
-# $Id: addkeywords,v 1.82 2019/06/22 21:24:54 fulford Exp $
+# $Id: addkeywords,v 1.83 2019/06/22 21:27:15 fulford Exp fulford $
 # $Source: /src/admin/usr/local/etc/RCS/addkeywords,v $
-# $Revision: 1.82 $
+# $Revision: 1.83 $
 # Author C W Fulford.
 # Copyright 2019 (c) C W Fulford.
 # Licensed for public use under the LGPL, .
 # For assistance contact fulford@fulford.net 0793 572 8612
 ########################################################################
 cmd=`basename $0`
-ver=`echo "$Id: addkeywords,v 1.82 2019/06/22 21:24:54 fulford Exp $"|awk '{print $3,$4,$5}'`
+ver=`echo "$Id: addkeywords,v 1.83 2019/06/22 21:27:15 fulford Exp fulford $"|awk '{print $3,$4,$5}'`
 syntax="$cmd [-c <configfile>] [-d] [-h <hostid>] [-v]|-V"
 while [ $# -gt 0 ] ;do
 	case $1 in 
@@ -18,7 +18,7 @@ while [ $# -gt 0 ] ;do
 		-l) last=$2;shift 2;;
 		-s) first=$2;shift 2;;
 		-v) verbose=:;shift;;
-		-V) echo "$cmd $Revision: 1.82 $ $Date: 2019/06/22 21:24:54 $"|awk '{print $1,$3,$6}';exit;;  
+		-V) echo "$cmd $Revision: 1.83 $ $Date: 2019/06/22 21:27:15 $"|awk '{print $1,$3,$6}';exit;;  
 		*) keywords="$keywords $1";shift;;
 	esac
 done
@@ -53,7 +53,6 @@ getFiles () {
 		break
 	done
 	files=`ls *.$ext | awk '/'$first'/,/'$last'/{printf "%s ",$0}'`
-echo $files
 	return "$files"
 }
 
@@ -61,6 +60,7 @@ chkFiles () {
 	keyword="$@"
 	tfiles=""
 	gfiles=""
+echo $files
 	for f in $files;do
 		if ! exiftool -IPTC:keywords $f|grep -q "$keyword"  ;then
 			tfiles="$tfiles $f"
