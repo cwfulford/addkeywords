@@ -1,24 +1,26 @@
 #!/bin/bash
-# $Id: addkeywords,v 1.87 2019/06/23 21:45:56 fulford Exp $
+# $Id: addkeywords,v 1.89 2020/04/03 09:58:07 fulford Exp fulford $
 # $Source: /src/admin/usr/local/etc/RCS/addkeywords,v $
-# $Revision: 1.87 $
+# $Revision: 1.89 $
 # Author C W Fulford.
 # Copyright 2019 (c) C W Fulford.
 # Licensed for public use under the LGPL, .
 # For assistance contact fulford@fulford.net 0793 572 8612
 ########################################################################
 cmd=`basename $0`
-ver=`echo "$Id: addkeywords,v 1.87 2019/06/23 21:45:56 fulford Exp $"|awk '{print $3,$4,$5}'`
-syntax="$cmd [-c <configfile>] [-d] [-h <hostid>] [-v]|-V"
+ver=`echo "$Id: addkeywords,v 1.89 2020/04/03 09:58:07 fulford Exp fulford $"|awk '{print $3,$4,$5}'`
+syntax="$cmd [-c <configfile>] [-d] [-f <first> [-l <last]]>]] [-s] [-u] [-v]|-V[<keyword>[,<keyword>][...]"
 while [ $# -gt 0 ] ;do
 	case $1 in 
 		-c) config=$2;shift 2;;
 		-d) set -x;debug=0; trap read debug;shift;;
-		-h) hostid=$2;shift 2;;			
+		-f) first=$2;shift 2;;
+		-h) echo $syntax;exit 0;;
 		-l) last=$2;shift 2;;
-		-s) first=$2;shift 2;;
+		-s) set=0;shift;;
+		-u) ecase=0;shift;;
 		-v) verbose=:;shift;;
-		-V) echo "$cmd $Revision: 1.87 $ $Date: 2019/06/23 21:45:56 $"|awk '{print $1,$3,$6}';exit;;  
+		-V) echo "$cmd $Revision: 1.89 $ $Date: 2020/04/03 09:58:07 $"|awk '{print $1,$3,$6}';exit;;  
 		*) keywords="$keywords $1";shift;;
 	esac
 done
@@ -31,14 +33,18 @@ carryon () {
 }
 
 getFiles () {
-	dir=`basename \`pwd\`` 
-	case $dir in
-		raw) ext=CR2;;
-		jpg) ext=jpg;;
-		tif) ext=tif;;
-		*) echo "Extension for $dir unknown" >&2
-		   exit;;
-	esac
+   dir=`basename \`pwd\`` 
+   case $dir in
+	raw) ext=CR2;;
+	jpg) if [ $ecase ];then ext=JPG ;else ext=jpg; fi;;
+	tif) ext=tif;;
+	*) echo "Extension for $dir unknown" >&2
+	   exit;;
+   esac
+   if [ "$first" -a "$last" ];then	
+	first=${first}.${ext}
+	last=${last}.${ext}
+   else
 	clear
 	echo 
 	PS3="Select first: "
@@ -52,23 +58,41 @@ getFiles () {
 		clear
 		break
 	done
-	farray=(`ls *.$ext | awk '/'$first'/,/'$last'/{printf "%s ",$0}'`)
+   fi
+   farray=(`ls *.$ext | awk '/'$first'/,/'$last'/{printf "%s ",$0}'`)
 }
 
 chkFiles () {
+	if [ ! -f *$first* ];then
+		echo "$cmd: $first not found" >&2
+		exit 1
+	done
+	if [ ! -f *$last* ];then
+		echo "$cmd: $last not found" >&2
+		exit 1
+	done
+ 
 	keyword="$@"
 	for ((i=0; i<${#farray[@]}; i++));do
-		echo ${farray[$i]}
+		[ $verbose ] && echo Checking ${farray[$i]}
 		if ! exiftool -IPTC:keywords ${farray[$i]}|
+		  # Count target files
 		  grep -q "$keyword";then
 			tfiles+=(${farray[$i]})
 		else
+			# Count files with existing keyword
 			gfiles+=(${farray[$i]})
-			echo ${farray[$i]}
+			#echo ${farray[$i]}
 		fi
-			echo tfiles ${tfiles[$i]}
-			echo gfiles ${gfiles[$i]}
 	done
+	[ $verbose ] && {
+		[ ${#tfiles[@]} -gt 0 ] &&{
+			echo "Target files: ${tfiles[*]}" >&2
+		}
+		[ ${#gfiles[@]} -gt 0 ] &&{
+			echo "Files with existing keyword: ${gfiles[*]}" >&2
+		}
+	}
 	if [ ${#gfiles[@]} -gt 0 ];then
 		echo -e "\n\"$keyword\" already exists in ${#gfiles[@]} files:"
 	fi
@@ -97,10 +121,12 @@ chkKeyword () {
 		# If nothing found offer to edit dictionary 
 		if [ ${#matches[@]} -lt 1 ];then
 			echo "Keyword \"$keyword\" is not available" >&2
-			read -p "Edit keywords now [y/n]? " yesno </dev/tty 
-			if [ $yesno = "y" ];then 
+			read -p "Edit keywords now [y]? " yesno </dev/tty 
+			if [ $yesno = "n" ];then 
+				return 1
+			else
 				sudo vi $dict </dev/tty
-			fi
+ 			fi
 		else
 			for ((i=0; i<${#matches[@]}; i++));do
 				echo "${i} ${matches[$i]}"
@@ -113,11 +139,10 @@ chkKeyword () {
 
 setKeyword () {
 	keyword="$@"
-	echo ${#tfiles[@]}
+	[ $verbose ] && echo N${#tfiles[@]}
 	for ((i=0; i<${#tfiles[@]}; i++));do
-		echo target ${tfiles[$i]}
-		exiftool -IPTC:keywords+="$keyword" ${tfiles[$i]}
-	echo here
+		[ $verbose ] && echo "Updating: ${tfiles[$i]}"
+		exiftool -q -IPTC:keywords+="$keyword" ${tfiles[$i]}
 	done
 	rm *original
 }
@@ -131,17 +156,18 @@ if [ ${#keywords} -lt 1 ];then
 fi
 echo $keywords|awk -F, '{for(i=1; i<=NF; i++) print($i)}'|
 while read keyword;do
-echo $keyword
-	chkKeyword "$keyword"
+	[ $verbose ] && echo Checking $keyword
+	if ! chkKeyword "$keyword" ;then 
+		continue
+	fi 
 	gfiles=()
 	tfiles=()
 	chkFiles "$keyword" 
 	todo=$?
-	echo todo $todo
-	echo n ${#tfiles[@]}
-	if [ $todo -gt 0 ];then
-		setKeyword "$keyword"
-	fi
+	[ $verbose ] && echo "Todo: $todo" >&2
+	[ $todo -eq 0 ] && continue
+	[ $todo -gt 0 ] && setKeyword "$keyword"
+	[ $todo -lt 0 ] && { echo "Terminating now.">&2 ; quit ;} 
 done	
 echo "Keyword updates completed" 
 
