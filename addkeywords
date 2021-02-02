@@ -1,14 +1,14 @@
 #!/bin/bash
-# $Id: addkeywords,v 1.100 2021/02/02 21:51:44 fulford Exp $
+# $Id: addkeywords,v 1.101 2021/02/02 22:29:36 fulford Exp fulford $
 # $Source: /src/admin/usr/local/etc/RCS/addkeywords,v $
-# $Revision: 1.100 $
+# $Revision: 1.101 $
 # Author C W Fulford.
 # Copyright 2019 (c) C W Fulford.
 # Licensed for public use under the LGPL, .
 # For assistance contact fulford@fulford.net 0793 572 8612
 ########################################################################
 cmd=`basename $0`
-ver=`echo "$Id: addkeywords,v 1.100 2021/02/02 21:51:44 fulford Exp $"|awk '{print $3,$4,$5}'`
+ver=`echo "$Id: addkeywords,v 1.101 2021/02/02 22:29:36 fulford Exp fulford $"|awk '{print $3,$4,$5}'`
 syntax="$cmd [-c <configfile>] [-d] [-f <first> [-l <last]]>]] [-s] [-u] [-v]|-V[<keyword>[,<keyword>][...]"
 while [ $# -gt 0 ] ;do
 	case $1 in 
@@ -20,7 +20,7 @@ while [ $# -gt 0 ] ;do
 		-s) set=0;shift;;
 		-u) ecase=0;shift;;
 		-v) verbose=:;shift;;
-		-V) echo "$cmd $Revision: 1.100 $ $Date: 2021/02/02 21:51:44 $"|awk '{print $1,$3,$6}';exit;;  
+		-V) echo "$cmd $Revision: 1.101 $ $Date: 2021/02/02 22:29:36 $"|awk '{print $1,$3,$6}';exit;;  
 		*) keywords="$keywords $1";shift;;
 	esac
 done
@@ -135,7 +135,6 @@ chkKeyword () {
 			select="${matches[$s]}"
 			if [ $select = "Add" ] ;then
 				 sudo vi $dict </dev/tty
-				 exit
 			else
 				keyword=$select
 			fi
